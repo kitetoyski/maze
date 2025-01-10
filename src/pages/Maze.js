@@ -138,11 +138,11 @@ const MazeGame = () => {
     const dy = touch.clientY - handleTouchStart.current.y;
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      if (dx > 50) movePlayer(1, 0); // Swipe Right
-      else if (dx < -50) movePlayer(-1, 0); // Swipe Left
+      if (dx > 40) movePlayer(1, 0); // Swipe Right
+      else if (dx < -40) movePlayer(-1, 0); // Swipe Left
     } else {
-      if (dy > 50) movePlayer(0, 1); // Swipe Down
-      else if (dy < -50) movePlayer(0, -1); // Swipe Up
+      if (dy > 40) movePlayer(0, 1); // Swipe Down
+      else if (dy < -40) movePlayer(0, -1); // Swipe Up
     }
     handleTouchStart.current = { x: touch.clientX, y: touch.clientY };
   };
