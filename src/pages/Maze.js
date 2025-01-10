@@ -64,7 +64,6 @@ const MazeGame = () => {
   const [level, setLevel] = useState(0);
   const [player, setPlayer] = useState({ x: 1, y: 1 });
   const [goal, setGoal] = useState({ x: 3, y: 3 });
-
   const [canvasSize, setCanvasSize] = useState({ width: 400, height: 400 });
   const [cellSize, setCellSize] = useState(40);
 
@@ -139,22 +138,18 @@ const MazeGame = () => {
     const dy = touch.clientY - handleTouchStart.current.y;
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      if (dx > 30) movePlayer(1, 0); // Swipe Right
-      else if (dx < -30) movePlayer(-1, 0); // Swipe Left
+      if (dx > 50) movePlayer(1, 0); // Swipe Right
+      else if (dx < -50) movePlayer(-1, 0); // Swipe Left
     } else {
-      if (dy > 30) movePlayer(0, 1); // Swipe Down
-      else if (dy < -30) movePlayer(0, -1); // Swipe Up
+      if (dy > 50) movePlayer(0, 1); // Swipe Down
+      else if (dy < -50) movePlayer(0, -1); // Swipe Up
     }
-  };
-
-  const handleTouchEnd = () => {
-    handleTouchStart.current = { x: 0, y: 0 };
+    handleTouchStart.current = { x: touch.clientX, y: touch.clientY };
   };
 
   const drawGame = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-
     const maze = levels[level].maze;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -184,10 +179,11 @@ const MazeGame = () => {
   const resizeCanvas = () => {
     const width = window.innerWidth * 0.9;
     const height = window.innerHeight * 0.8;
-    const size = Math.min(width, height);
     const maze = levels[level].maze;
-    setCanvasSize({ width: size, height: size });
-    setCellSize(size / maze.length);
+    const size = Math.min(width, height);
+    const cellSize = size / maze.length;
+    setCanvasSize({ width: cellSize * maze[0].length, height: cellSize * maze.length });
+    setCellSize(cellSize);
   };
 
   useEffect(() => {
@@ -204,12 +200,10 @@ const MazeGame = () => {
       handleTouchStart.current = { x: touch.clientX, y: touch.clientY };
     });
     canvasRef.current.addEventListener("touchmove", handleTouchMove);
-    canvasRef.current.addEventListener("touchend", handleTouchEnd);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       canvasRef.current.removeEventListener("touchstart", handleTouchMove);
       canvasRef.current.removeEventListener("touchmove", handleTouchMove);
-      canvasRef.current.removeEventListener("touchend", handleTouchEnd);
     };
   });
 
