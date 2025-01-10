@@ -64,7 +64,9 @@ const MazeGame = () => {
   const [level, setLevel] = useState(0);
   const [player, setPlayer] = useState({ x: 1, y: 1 });
   const [goal, setGoal] = useState({ x: 3, y: 3 });
-  const cellSize = 40;
+
+  const [canvasSize, setCanvasSize] = useState({ width: 400, height: 400 });
+  const [cellSize, setCellSize] = useState(40);
 
   const movePlayer = (dx, dy) => {
     const newX = player.x + dx;
@@ -129,6 +131,26 @@ const MazeGame = () => {
     }
   };
 
+  const handleTouchStart = useRef({ x: 0, y: 0 });
+
+  const handleTouchMove = (e) => {
+    const touch = e.touches[0];
+    const dx = touch.clientX - handleTouchStart.current.x;
+    const dy = touch.clientY - handleTouchStart.current.y;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (dx > 30) movePlayer(1, 0); // Swipe Right
+      else if (dx < -30) movePlayer(-1, 0); // Swipe Left
+    } else {
+      if (dy > 30) movePlayer(0, 1); // Swipe Down
+      else if (dy < -30) movePlayer(0, -1); // Swipe Up
+    }
+  };
+
+  const handleTouchEnd = () => {
+    handleTouchStart.current = { x: 0, y: 0 };
+  };
+
   const drawGame = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -159,19 +181,43 @@ const MazeGame = () => {
     ctx.fill();
   };
 
+  const resizeCanvas = () => {
+    const width = window.innerWidth * 0.9;
+    const height = window.innerHeight * 0.8;
+    const size = Math.min(width, height);
+    const maze = levels[level].maze;
+    setCanvasSize({ width: size, height: size });
+    setCellSize(size / maze.length);
+  };
+
+  useEffect(() => {
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    return () => window.removeEventListener("resize", resizeCanvas);
+  }, [level]);
+
   useEffect(() => {
     drawGame();
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    canvasRef.current.addEventListener("touchstart", (e) => {
+      const touch = e.touches[0];
+      handleTouchStart.current = { x: touch.clientX, y: touch.clientY };
+    });
+    canvasRef.current.addEventListener("touchmove", handleTouchMove);
+    canvasRef.current.addEventListener("touchend", handleTouchEnd);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      canvasRef.current.removeEventListener("touchstart", handleTouchMove);
+      canvasRef.current.removeEventListener("touchmove", handleTouchMove);
+      canvasRef.current.removeEventListener("touchend", handleTouchEnd);
+    };
   });
 
   return (
     <div style={{ textAlign: "center" }}>
       <h1>Maze Game</h1>
-      <p>
-        Level {level + 1}
-      </p>
-      <canvas ref={canvasRef} width={1000} height={1400}></canvas>
+      <p>Level {level + 1}</p>
+      <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height}></canvas>
     </div>
   );
 };
